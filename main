@@ -1,0 +1,180 @@
+import React, { useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
+const questions = [
+  {
+    question: "What does layer 2 use?",
+    answers: [
+      "MAC address identification",
+      "Compassion between software applications",
+      "Internet protocol",
+      "The IP address"
+    ],
+    correct: 0
+  },
+  {
+    question: "Given multiple paths to a network, how would you prefer one route over the other?",
+    answers: [
+      "By configuring Policy-Based Routing (PBR) to override the standard routing table",
+      "By using a metric system to assign cost based on factors like hop count and bandwidth",
+      "By setting up load balancing to use both paths equally",
+      "By configuring the administrative distance to prioritize the most trusted route source"
+    ],
+    correct: 1
+  },
+  {
+    question: "What is the primary purpose of the Cisco IOS?",
+    answers: [
+      "User Interface Design",
+      "Network Security",
+      "Routing and Switching",
+      "Data Encryption"
+    ],
+    correct: 2
+  },
+  {
+    question: "What does VLAN stand for?",
+    answers: [
+      "Virtual Local Area Network",
+      "Very Large Area Network",
+      "Virtual Large Area Network",
+      "Versatile Local Area Network"
+    ],
+    correct: 0
+  },
+  {
+    question: "In networking, what does the term 'subnetting' refer to?",
+    answers: [
+      "Dividing a network into smaller segments",
+      "Combining multiple networks into one",
+      "Increasing the bandwidth of a network",
+      "Enhancing the security of a network"
+    ],
+    correct: 0
+  },
+  {
+    question: "When plugging in a switch what port should you use for the input of ethernet from home router your switch has multiple speed ports?",
+    answers: [
+      "Fastest port on switch",
+      "The slowest",
+      "Find your Ethernet speed and decide from there",
+      "Doesn't matter"
+    ],
+    correct: 2
+  }
+];
+
+const KahootQuiz = () => {
+  const [screen, setScreen] = useState('intro');
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [score, setScore] = useState(0);
+  const [answered, setAnswered] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+
+  const playSound = (isCorrect) => {
+    const audio = new Audio(isCorrect ? '/correct-156911.mp3' : '/wrong-47985.mp3');
+    audio.play().catch(e => console.log('Error playing sound:', e));
+  };
+
+  const handleAnswer = (answerIndex) => {
+    if (!answered) {
+      setAnswered(true);
+      setSelectedAnswer(answerIndex);
+      const isCorrect = answerIndex === questions[currentQuestion].correct;
+      if (isCorrect) {
+        setScore(score + 1);
+      }
+      playSound(isCorrect);
+    }
+  };
+
+  const nextQuestion = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+      setAnswered(false);
+      setSelectedAnswer(null);
+    } else {
+      setScreen('final');
+    }
+  };
+
+  const restartQuiz = () => {
+    setScreen('intro');
+    setCurrentQuestion(0);
+    setScore(0);
+    setAnswered(false);
+    setSelectedAnswer(null);
+  };
+
+  if (screen === 'intro') {
+    return (
+      <Card className="p-6 max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold mb-4 text-center">Networking Quiz</h1>
+        <div className="flex flex-col gap-4">
+          <Button onClick={() => setScreen('about')} className="w-full">ABOUT</Button>
+          <Button onClick={() => setScreen('quiz')} className="w-full">TEST</Button>
+        </div>
+      </Card>
+    );
+  }
+
+  if (screen === 'about') {
+    return (
+      <Card className="p-6 max-w-2xl mx-auto">
+        <h2 className="text-xl font-bold mb-4">About This Quiz</h2>
+        <p className="mb-4">This is a networking quiz to test your knowledge of basic networking concepts. Created by Claude.</p>
+        <div className="flex flex-col gap-4">
+          <Button onClick={() => setScreen('intro')} className="w-full">RETURN</Button>
+          <Button onClick={() => setScreen('quiz')} className="w-full">QUIZ</Button>
+        </div>
+      </Card>
+    );
+  }
+
+  if (screen === 'final') {
+    return (
+      <Card className="p-6 max-w-2xl mx-auto">
+        <h2 className="text-xl font-bold mb-4">Quiz Complete!</h2>
+        <p className="text-lg mb-4">Your Score: {score} out of {questions.length}</p>
+        <Button onClick={restartQuiz} className="w-full">Play Again?</Button>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="p-6 max-w-2xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold mb-2">Question {currentQuestion + 1}</h2>
+        <p className="text-lg">{questions[currentQuestion].question}</p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 mb-6">
+        {questions[currentQuestion].answers.map((answer, index) => (
+          <Button
+            key={index}
+            onClick={() => handleAnswer(index)}
+            disabled={answered}
+            className={`w-full ${
+              answered
+                ? index === questions[currentQuestion].correct
+                  ? 'bg-green-500 hover:bg-green-600'
+                  : index === selectedAnswer
+                  ? 'bg-red-500 hover:bg-red-600'
+                  : ''
+                : ''
+            }`}
+          >
+            {answer}
+          </Button>
+        ))}
+      </div>
+      {answered && (
+        <Button onClick={nextQuestion} className="w-full">
+          {currentQuestion < questions.length - 1 ? 'Next Question' : 'See Results'}
+        </Button>
+      )}
+    </Card>
+  );
+};
+
+export default KahootQuiz;
